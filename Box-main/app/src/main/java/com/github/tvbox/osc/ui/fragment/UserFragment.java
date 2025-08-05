@@ -7,6 +7,10 @@ import android.view.animation.BounceInterpolator;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.github.tvbox.osc.R;
 import com.github.tvbox.osc.api.ApiConfig;
@@ -29,8 +33,6 @@ import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.model.Response;
 import com.orhanobut.hawk.Hawk;
-import com.owen.tvrecyclerview.widget.TvRecyclerView;
-import com.owen.tvrecyclerview.widget.V7GridLayoutManager;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -55,8 +57,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     private LinearLayout tvPush;
     public static HomeHotVodAdapter homeHotVodAdapter;
     private List<Movie.Video> homeSourceRec;
-    public static TvRecyclerView tvHotListForGrid;
-    public static TvRecyclerView tvHotListForLine;
+    public static RecyclerView rvHotListForGrid;
+    public static RecyclerView rvHotListForLine;
 
     public static UserFragment newInstance() {
         return new UserFragment();
@@ -73,7 +75,6 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
 
     @Override
     public void onFragmentResume() {
-
         // takagen99: Initialize Icon Placement
         if (!Hawk.get(HawkConfig.HOME_SEARCH_POSITION, true)) {
             tvSearch.setVisibility(View.VISIBLE);
@@ -108,7 +109,9 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
     protected int getLayoutResID() {
         return R.layout.fragment_user;
     }
+
     private ImgUtil.Style style;
+
     @Override
     protected void init() {
         EventBus.getDefault().register(this);
@@ -133,24 +136,40 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
         tvHistory.setOnFocusChangeListener(focusChangeListener);
         tvPush.setOnFocusChangeListener(focusChangeListener);
         tvCollect.setOnFocusChangeListener(focusChangeListener);
-        tvHotListForLine = findViewById(R.id.tvHotListForLine);
-        tvHotListForGrid = findViewById(R.id.tvHotListForGrid);
-        tvHotListForGrid.setHasFixedSize(true);
-        int spanCount = 5;
-        if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && homeSourceRec!=null) {
-            style=ImgUtil.initStyle();
+
+        rvHotListForLine = findViewById(R.id.rvHotListForLine);
+        rvHotListForGrid = findViewById(R.id.rvHotListForGrid);
+
+        // 设置网格布局
+        int spanCount = 3;
+        if (Hawk.get(HawkConfig.HOME_REC, 0) == 1 && homeSourceRec != null) {
+            style = ImgUtil.initStyle();
         }
-        if(style!=null && Hawk.get(HawkConfig.HOME_REC, 0) == 1) {
-            spanCount=ImgUtil.spanCountByStyle(style,spanCount);
+        if (style != null && Hawk.get(HawkConfig.HOME_REC, 0) == 1) {
+            spanCount = ImgUtil.spanCountByStyle(style, spanCount);
         }
-        tvHotListForGrid.setLayoutManager(new V7GridLayoutManager(this.mContext, spanCount)); 
-        String tvRate="";
-        if(Hawk.get(HawkConfig.HOME_REC, 0) == 0){
-            tvRate="豆瓣热播";
-        }else if(Hawk.get(HawkConfig.HOME_REC, 0) == 1){
-          tvRate= homeSourceRec != null ? "站点推荐" : "豆瓣热播";
+
+
+        rvHotListForGrid.setLayoutManager(new GridLayoutManager(this.mContext, spanCount));
+        rvHotListForGrid.setHasFixedSize(true);
+        //没有多余的边距
+        rvHotListForGrid.setPadding(0, 0, 0, 0);
+        rvHotListForGrid.setClipToPadding(false);
+
+        // 设置线性布局
+        rvHotListForLine.setLayoutManager(new LinearLayoutManager(this.mContext, LinearLayoutManager.HORIZONTAL, false));
+        rvHotListForLine.setHasFixedSize(true);
+
+
+        String tvRate = "";
+        if (Hawk.get(HawkConfig.HOME_REC, 0) == 0) {
+            tvRate = "豆瓣热播";
+        } else if (Hawk.get(HawkConfig.HOME_REC, 0) == 1) {
+            tvRate = homeSourceRec != null ? "站点推荐" : "豆瓣热播";
         }
-        homeHotVodAdapter = new HomeHotVodAdapter(style,tvRate);
+        homeHotVodAdapter = new HomeHotVodAdapter(style, tvRate);
+
+        // 设置点击监听
         homeHotVodAdapter.setOnItemClickListener(new BaseQuickAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseQuickAdapter adapter, View view, int position) {
@@ -158,7 +177,7 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                     return;
                 Movie.Video vod = ((Movie.Video) adapter.getItem(position));
 
-                // takagen99: CHeck if in Delete Mode
+                // takagen99: Check if in Delete Mode
                 if ((vod.id != null && !vod.id.isEmpty()) && (Hawk.get(HawkConfig.HOME_REC, 0) == 2) && HawkConfig.hotVodDelete) {
                     homeHotVodAdapter.remove(position);
                     VodInfo vodInfo = RoomDataManger.getVodInfo(vod.sourceKey, vod.id);
@@ -176,9 +195,9 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                     }
                 } else {
                     Intent newIntent;
-                    if(Hawk.get(HawkConfig.FAST_SEARCH_MODE, false)){
+                    if (Hawk.get(HawkConfig.FAST_SEARCH_MODE, false)) {
                         newIntent = new Intent(mContext, FastSearchActivity.class);
-                    }else {
+                    } else {
                         newIntent = new Intent(mContext, SearchActivity.class);
                     }
                     newIntent.putExtra("title", vod.name);
@@ -187,7 +206,8 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 }
             }
         });
-        // takagen99 : Long press to trigger Delete Mode for VOD History on Home Page
+
+        // 设置长按监听
         homeHotVodAdapter.setOnItemLongClickListener(new BaseQuickAdapter.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(BaseQuickAdapter adapter, View view, int position) {
@@ -207,61 +227,27 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 return true;
             }
         });
-        
+
         tvHistory.setOnLongClickListener(new View.OnLongClickListener() {
-        	@Override
+            @Override
             public boolean onLongClick(View v) {
                 HomeActivity.homeRecf();
                 return HomeActivity.reHome(mContext);
             }
         });
-        
-        // Grid View
-        tvHotListForGrid.setOnItemListener(new TvRecyclerView.OnItemListener() {
-            @Override
-            public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
-            }
 
-            @Override
-            public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
-            }
-
-            @Override
-            public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-
-            }
-        });
-        tvHotListForGrid.setAdapter(homeHotVodAdapter);
-        // Line View
-        tvHotListForLine.setOnItemListener(new TvRecyclerView.OnItemListener() {
-            @Override
-            public void onItemPreSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
-            }
-
-            @Override
-            public void onItemSelected(TvRecyclerView parent, View itemView, int position) {
-                itemView.animate().scaleX(1.2f).scaleY(1.2f).setDuration(300).setInterpolator(new BounceInterpolator()).start();
-            }
-
-            @Override
-            public void onItemClick(TvRecyclerView parent, View itemView, int position) {
-
-            }
-        });
-        tvHotListForLine.setAdapter(homeHotVodAdapter);
+        rvHotListForGrid.setAdapter(homeHotVodAdapter);
+        rvHotListForLine.setAdapter(homeHotVodAdapter);
 
         initHomeHotVod(homeHotVodAdapter);
 
         // Swifly: Home Style
         if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) {
-            tvHotListForGrid.setVisibility(View.VISIBLE);
-            tvHotListForLine.setVisibility(View.GONE);
+            rvHotListForGrid.setVisibility(View.VISIBLE);
+            rvHotListForLine.setVisibility(View.GONE);
         } else {
-            tvHotListForGrid.setVisibility(View.GONE);
-            tvHotListForLine.setVisibility(View.VISIBLE);
+            rvHotListForGrid.setVisibility(View.GONE);
+            rvHotListForLine.setVisibility(View.VISIBLE);
         }
     }
 
@@ -324,11 +310,11 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
                 Movie.Video vod = new Movie.Video();
                 vod.name = obj.get("title").getAsString();
                 vod.note = obj.get("rate").getAsString();
-                vod.pic = obj.get("cover").getAsString() + "@User-Agent=" + UA.random() + "@Referer=https://www.douban.com/";                
+                vod.pic = obj.get("cover").getAsString() + "@User-Agent=" + UA.random() + "@Referer=https://www.douban.com/";
                 result.add(vod);
             }
         } catch (Throwable th) {
-
+            th.printStackTrace();
         }
         return result;
     }
@@ -345,7 +331,6 @@ public class UserFragment extends BaseLazyFragment implements View.OnClickListen
 
     @Override
     public void onClick(View v) {
-
         // takagen99: Remove Delete Mode
         HawkConfig.hotVodDelete = false;
 

@@ -10,14 +10,14 @@
 
     <FrameLayout
         android:id="@+id/mItemFrame"
-        android:layout_width="@dimen/vs_214"
-        android:layout_height="@dimen/vs_280">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <ImageView
             android:id="@+id/ivThumb"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="@dimen/vs_1"
+            android:padding="0dp"
             android:scaleType="fitXY" />
 
         <LinearLayout
@@ -30,7 +30,7 @@
 
             <TextView
                 android:id="@+id/tvYear"
-                android:layout_width="wrap_content"
+                android:layout_width="28dp"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/vs_5"
                 android:layout_marginRight="@dimen/vs_5"

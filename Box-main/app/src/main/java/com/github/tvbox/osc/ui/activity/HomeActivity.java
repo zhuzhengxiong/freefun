@@ -114,6 +114,7 @@ public class HomeActivity extends BaseActivity {
     public View sortFocusView = null;
     private final Handler mHandler = new Handler();
     private long mExitTime = 0;
+    //实时更新的时钟
     private final Runnable mRunnable = new Runnable() {
         @SuppressLint({"DefaultLocale", "SetTextI18n"})
         @Override
@@ -174,11 +175,14 @@ public class HomeActivity extends BaseActivity {
         this.mGridView.setLayoutManager(new V7LinearLayoutManager(this.mContext, 0, false));
         this.mGridView.setSpacingWithMargins(0, AutoSizeUtils.dp2px(this.mContext, 10.0f));
         this.mGridView.setAdapter(this.sortAdapter);
-        sortAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+        //方法用于注册一个监听器来监测 RecyclerView 适配器数据的变化
+        sortAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {//匿名内部类的语法
             @Override
             public void onChanged() {
-                mGridView.post(() -> {
+                mGridView.post(() -> {//1. 使用post确保在UI线程执行???
+                    //2. 获取布局管理器并查找第一个子项视图
                     View firstChild = Objects.requireNonNull(mGridView.getLayoutManager()).findViewByPosition(0);
+                    //如果第一个视图存在则设置选择位置为0并请求焦点
                     if (firstChild != null) {
                         mGridView.setSelectedPosition(0);
                         firstChild.requestFocus();
@@ -310,20 +314,20 @@ public class HomeActivity extends BaseActivity {
                 jumpActivity(SearchActivity.class);
             }
         });
-        // Button : Style --------------------------------------------
+        // Button : Style --------------------------------------------这里可以设置图片的单行展示还是多行展示
         tvStyle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 try {
                     Hawk.put(HawkConfig.HOME_REC_STYLE, !Hawk.get(HawkConfig.HOME_REC_STYLE, false));
                     if (Hawk.get(HawkConfig.HOME_REC_STYLE, false)) {
-                        UserFragment.tvHotListForGrid.setVisibility(View.VISIBLE);
-                        UserFragment.tvHotListForLine.setVisibility(View.GONE);
+                        UserFragment.rvHotListForGrid.setVisibility(View.VISIBLE);
+                        UserFragment.rvHotListForLine.setVisibility(View.GONE);
                         Toast.makeText(HomeActivity.this, getString(R.string.hm_style_grid), Toast.LENGTH_SHORT).show();
                         tvStyle.setImageResource(R.drawable.hm_up_down);
                     } else {
-                        UserFragment.tvHotListForGrid.setVisibility(View.GONE);
-                        UserFragment.tvHotListForLine.setVisibility(View.VISIBLE);
+                        UserFragment.rvHotListForGrid.setVisibility(View.GONE);
+                        UserFragment.rvHotListForLine.setVisibility(View.VISIBLE);
                         Toast.makeText(HomeActivity.this, getString(R.string.hm_style_line), Toast.LENGTH_SHORT).show();
                         tvStyle.setImageResource(R.drawable.hm_left_right);
                     }
@@ -621,6 +625,7 @@ public class HomeActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         //打断加载
+        super.onBackPressed();
         if(isLoading()){
             refreshEmpty();
             return;
@@ -655,9 +660,9 @@ public class HomeActivity extends BaseActivity {
             } else {
                 doExit();
             }
-        } else if (baseLazyFragment instanceof UserFragment && UserFragment.tvHotListForGrid.canScrollVertically(-1)) {
+        } else if (baseLazyFragment instanceof UserFragment && UserFragment.rvHotListForGrid.canScrollVertically(-1)) {
             // 如果 UserFragment 列表可以向上滚动，则滚动到顶部
-            UserFragment.tvHotListForGrid.scrollToPosition(0);
+            UserFragment.rvHotListForGrid.scrollToPosition(0);
             this.mGridView.setSelection(0);
         } else {
             doExit();
