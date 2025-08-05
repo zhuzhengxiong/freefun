@@ -13,4 +13,4 @@ JDK:17
     2.2 改变 RecyclerView 的item的宽高适配手机 V
         发现是有item的但是不知道是怎么联系起来的，而且只改了首页的item(mItemFrame)
 待续。。。。。。。
-
+这样绑定的：rvHotListForGrid.setAdapter(homeHotVodAdapter);

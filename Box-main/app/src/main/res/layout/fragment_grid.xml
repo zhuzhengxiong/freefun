@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 视频分类页面略缩图样式 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clipChildren="false"
     android:clipToPadding="false"
     android:orientation="vertical">
 
-    <com.owen.tvrecyclerview.widget.TvRecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/mGridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -18,7 +18,6 @@
         android:paddingTop="@dimen/vs_40"
         android:paddingRight="@dimen/vs_60"
         android:paddingBottom="@dimen/vs_40"
-        app:tv_horizontalSpacingWithMargins="@dimen/vs_20"
-        app:tv_selectedItemIsCentered="true"
-        app:tv_verticalSpacingWithMargins="@dimen/vs_20" />
+        tools:ignore="SpeakableTextPresentCheck" />
+
 </LinearLayout>
